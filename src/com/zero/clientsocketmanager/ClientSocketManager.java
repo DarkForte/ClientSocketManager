@@ -19,6 +19,7 @@ public class ClientSocketManager
 	int port;
 	Socket socket;
 	Handler handler;
+	boolean useGBK;
 	
 	/**
 	 * Thread to get message from server
@@ -30,9 +31,15 @@ public class ClientSocketManager
 		@Override
 		public void run() 
 		{
+			InputStreamReader input_stream_reader;
 			try 
 			{
-				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+				if(useGBK)
+					input_stream_reader = new InputStreamReader(socket.getInputStream(),"GBK");
+				else
+					input_stream_reader = new InputStreamReader(socket.getInputStream());
+				
+				BufferedReader in = new BufferedReader(input_stream_reader);
 				while(true)
 				{
 					String input = in.readLine();
@@ -142,6 +149,12 @@ public class ClientSocketManager
 		ip = _ip;
 		port = _port;
 		handler = _handler;
+		useGBK = false;
+	}
+	
+	public void setGBK(boolean x)
+	{
+		useGBK=x;
 	}
 	
 	public void loginUnblocked()
