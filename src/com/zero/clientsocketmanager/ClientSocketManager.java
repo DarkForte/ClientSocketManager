@@ -38,8 +38,7 @@ public class ClientSocketManager
 					String input = in.readLine();
 					if(input!=null)
 					{
-						Message msg = new Message();
-						msg.obj = input;
+						Message msg = createMessage(input);
 						handler.sendMessage(msg);
 					}
 				} 
@@ -47,15 +46,13 @@ public class ClientSocketManager
 			catch (IOException e) 
 			{
 				System.out.println("NetThreadIOException");
-				Message msg = new Message();
-				msg.obj = "net error";
+				Message msg = createMessage("net error");
 				handler.sendMessage(msg);
 			}
 			catch (NullPointerException e)
 			{
 				//System.out.println("NetThreadIOException");
-				Message msg = new Message();
-				msg.obj = "net error";
+				Message msg = createMessage("net error");
 				handler.sendMessage(msg);
 			}
 		}
@@ -76,19 +73,19 @@ public class ClientSocketManager
 			{
 				socket = new Socket();
 				socket.connect(new InetSocketAddress(ip, port) , 5000);
+				Message msg = createMessage("ok");
+				handler.sendMessage(msg);
 				ok = true;
 				
 			} catch (UnknownHostException e) 
 			{
 				System.out.println("UnknownHostException");
-				Message msg = new Message();
-				msg.obj = "did not login";
+				Message msg = createMessage("did not login");
 				handler.sendMessage(msg);
 				ok=false;
 			} catch (IOException e) {
 				System.out.println("IOException");
-				Message msg = new Message();
-				msg.obj = "did not login";
+				Message msg = createMessage("did not login");
 				handler.sendMessage(msg);
 				ok=false;
 			}
@@ -111,7 +108,8 @@ public class ClientSocketManager
 			{
 				cout = new PrintWriter(socket.getOutputStream(),true);
 				cout.println(send_message);
-			} catch (IOException e) {
+			} catch (IOException e) 
+			{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -123,6 +121,13 @@ public class ClientSocketManager
 		}
     	
     }
+	
+	protected Message createMessage(String str)
+	{
+		Message msg = new Message();
+		msg.obj = str;
+		return msg;
+	}
 	
 	public ClientSocketManager(){}
 	
@@ -139,7 +144,14 @@ public class ClientSocketManager
 		handler = _handler;
 	}
 	
-	public boolean login()
+	public void loginUnblocked()
+	{
+		LoginThread login_thread = new LoginThread();
+		login_thread.start();
+		return;
+	}
+	
+	public boolean loginBlocked()
 	{
 		LoginThread login_thread = new LoginThread();
 		login_thread.start();
@@ -155,16 +167,21 @@ public class ClientSocketManager
 		
 	}
 	
-	public void openGetThread()
+	public void startGetThread()
 	{
 		GetThread getThread = new GetThread();
 		new Thread(getThread).start();
 	}
 	
-	public void sendMsg(String msg)
+	public void sendMessage(String msg)
 	{
 		SendThread sendThread = new SendThread(msg);
 		new Thread(sendThread).start();
+	}
+	
+	public Socket getSocket()
+	{
+		return socket;
 	}
 }
 
